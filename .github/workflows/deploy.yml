@@ -1,0 +1,53 @@
+name: Deploy
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www
+            
+            if [ ! -d ".git" ]; then
+              git clone git@github.com:igorzeno/deploy.git .
+            fi
+            
+            git pull origin master 
+            
+            if [ ! -f ".env" ]; then
+              cat > .env << 'EOF'
+              APP_NAME="My App Deploy"
+              APP_ENV=production
+              APP_DEBUG=false
+              APP_URL=http://${{ secrets.SSH_HOST }}
+              DB_CONNECTION=mysql
+              DB_HOST=db
+              DB_PORT=3306
+              DB_DATABASE=laravel
+              DB_USERNAME=root
+              DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+              EOF
+            fi
+      
+            # Останавливаем и собираем
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d --build
+            
+            # Ждём запуска контейнеров
+            sleep 30
+            
+            # КЛЮЧЕВОЕ: Генерируем APP_KEY и выполняем миграции
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan key:generate --force
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
+            docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
+            
+            echo "✅ Деплой завершён с миграциями!"
