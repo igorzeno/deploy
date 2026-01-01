@@ -1,20 +1,29 @@
 FROM php:8.4-fpm-alpine
 
-RUN docker-php-ext-install pdo pdo_mysql
+RUN echo "=== Шаг 1: Установка PHP ==="
+RUN apk add --no-cache libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
 
+RUN apk add --no-cache bash
+
+RUN echo "=== Шаг 2: Composer ==="
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN adduser -D -u 1000 appuser
+RUN echo "=== Шаг 3: Пользователь ==="
+RUN addgroup -g 1000 appuser && \
+    adduser -u 1000 -G appuser -D -h /home/appuser appuser
 
+RUN echo "=== Шаг 4: Копирование ==="
 COPY --chown=appuser:appuser . /var/www
 
-# Только создаём папки которые точно должны быть
-RUN mkdir -p /var/www/storage/framework/sessions /var/www/storage/framework/cache
+RUN echo "=== Шаг 5: Проверка ==="
+RUN ls -la /var/www/ && \
+    echo "---" && \
+    ls -la /var/www/composer.json 2>&1
 
+RUN echo "=== Шаг 6: Composer install ==="
 WORKDIR /var/www
-RUN composer install --no-dev --optimize-autoloader
-
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
+RUN pwd && ls -la && composer install --no-dev --optimize-autoloader
 
 USER appuser
 CMD ["php-fpm"]
