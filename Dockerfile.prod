@@ -1,29 +1,22 @@
 FROM php:8.4-fpm-alpine
 
-RUN echo "=== Шаг 1: Установка PHP ==="
 RUN apk add --no-cache libzip-dev \
     && docker-php-ext-install pdo pdo_mysql zip
 
 RUN apk add --no-cache bash
 
-RUN echo "=== Шаг 2: Composer ==="
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN echo "=== Шаг 3: Пользователь ==="
 RUN addgroup -g 1000 appuser && \
     adduser -u 1000 -G appuser -D -h /home/appuser appuser
 
-RUN echo "=== Шаг 4: Копирование ==="
+# Копируем ВСЁ из репозитория
 COPY --chown=appuser:appuser . /var/www
 
-RUN echo "=== Шаг 5: Проверка ==="
-RUN ls -la /var/www/ && \
-    echo "---" && \
-    ls -la /var/www/composer.json 2>&1
+# Переходим в /var/www/app где лежит composer.json
+WORKDIR /var/www/app
 
-RUN echo "=== Шаг 6: Composer install ==="
-WORKDIR /var/www
-RUN pwd && ls -la && composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
 USER appuser
 CMD ["php-fpm"]
