@@ -42,7 +42,6 @@ services:
     volumes:
       - ./app:/var/www
       - ./docker/nginx/conf.d/default.prod.conf:/etc/nginx/conf.d/default.prod.conf
-      - ./ssl:/etc/nginx/ssl:ro  # для SSL сертификатов
       - logs_nginx:/var/log/nginx
     depends_on:
       - app
