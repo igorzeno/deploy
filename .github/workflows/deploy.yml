@@ -16,13 +16,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /var/www
-            
+
             if [ ! -d ".git" ]; then
               git clone git@github.com:igorzeno/deploy.git .
             fi
-            
+
             git pull origin master 
-            
+
             if [ ! -f ".env" ]; then
               cat > .env << 'EOF'
               APP_NAME="My App Deploy"
@@ -37,15 +37,12 @@ jobs:
               DB_PASSWORD=${{ secrets.DB_PASSWORD }}
               EOF
             fi
-      
-            # Останавливаем и собираем
+
             docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d --build
             
-            # Ждём запуска контейнеров
             sleep 30
             
-            # КЛЮЧЕВОЕ: Генерируем APP_KEY и выполняем миграции
             docker-compose -f docker-compose.prod.yml exec -T app php artisan key:generate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
