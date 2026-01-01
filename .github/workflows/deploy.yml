@@ -43,6 +43,7 @@ jobs:
             
             sleep 30
             
+            docker-compose -f docker-compose.prod.yml exec -T app composer install --no-dev --optimize-autoloader --no-scripts
             docker-compose -f docker-compose.prod.yml exec -T app php artisan key:generate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
