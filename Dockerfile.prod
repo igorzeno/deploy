@@ -13,8 +13,7 @@ RUN adduser -D -u 1000 -G www-data appuser \
 COPY --chown=appuser:www-data . /var/www
 
 WORKDIR /var/www
-RUN composer install --no-dev --optimize-autoloader \
-    && composer dump-autoload --optimize --no-dev
+RUN composer install --no-dev --optimize-autoloader
 
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
