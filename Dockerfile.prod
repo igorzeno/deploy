@@ -1,26 +1,20 @@
 FROM php:8.4-fpm-alpine
 
-RUN apk add --no-cache libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql zip
-
-RUN apk add --no-cache bash
+RUN docker-php-ext-install pdo pdo_mysql
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Создаём пользователя appuser в группе www-data
-RUN adduser -D -u 1000 -G www-data appuser \
-    && mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache
+RUN adduser -D -u 1000 appuser
 
-# Меняем владельца на appuser:www-data (не appuser:appuser!)
-RUN chown -R appuser:www-data /var/www
+COPY --chown=appuser:appuser . /var/www
 
-COPY --chown=appuser:www-data . /var/www
-
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+# Только создаём папки которые точно должны быть
+RUN mkdir -p /var/www/storage/framework/sessions /var/www/storage/framework/cache
 
 WORKDIR /var/www
 RUN composer install --no-dev --optimize-autoloader
 
-USER appuser
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
-CMD php -d opcache.enable=1 php-fpm
+USER appuser
+CMD ["php-fpm"]
