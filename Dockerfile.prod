@@ -10,13 +10,14 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN adduser -D -u 1000 -G www-data appuser \
     && mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache
 
-COPY --chown=appuser:www-data . /var/www
+RUN chown -R appuser:appuser /var/www
 
-WORKDIR /var/www
-RUN composer install --no-dev --optimize-autoloader \
-    && composer dump-autoload --optimize --no-dev
+COPY --chown=appuser:appuser . /var/www
 
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+WORKDIR /var/www
+RUN composer install --no-dev --optimize-autoloader
 
 USER appuser
 
