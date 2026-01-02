@@ -19,9 +19,6 @@ RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cach
 # 5. Копируем код
 COPY --chown=appuser:appuser . /var/www
 
-COPY ./docker/php/.bashrc /home/appuser/.bashrc
-RUN chmod 644 /home/appuser/.bashrc
-
 USER appuser
 WORKDIR /var/www
 

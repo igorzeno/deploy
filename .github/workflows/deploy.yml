@@ -41,7 +41,12 @@ jobs:
             docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d --build
             
-            sleep 30
+            # 2. Устанавливаем зависимости внутри запущенного контейнера
+            docker-compose -f docker-compose.prod.yml exec -T app sh -c "cd /var/www/app && composer install --no-dev --optimize-autoloader --no-scripts"
+    
+            docker-compose -f docker-compose.prod.yml restart app
+       
+            sleep 10
 
             docker-compose -f docker-compose.prod.yml exec -T app php artisan key:generate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force

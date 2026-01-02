@@ -1,7 +1,6 @@
 services:
   db:
     image: mariadb:10.11
-    container_name: laravel_mysql_prod
     restart: always  # always вместо unless-stopped
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -16,7 +15,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod  # отдельный Dockerfile для prod
-    container_name: laravel_app_prod
     restart: always
     working_dir: /var/www
     environment:
@@ -34,7 +32,6 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: laravel_nginx_prod
     restart: always
     ports:
       - "8000:80"        # HTTP
@@ -49,7 +46,6 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: laravel_redis_prod
     restart: always
     command: redis-server --appendonly yes
     volumes:
