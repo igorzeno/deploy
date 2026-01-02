@@ -28,7 +28,12 @@ services:
       - db
     networks:
       - laravel_network
-    command: php-fpm
+    command: >
+      sh -c "
+        cd /var/www/app &&
+        composer install --no-dev --optimize-autoloader --no-scripts &&
+        php-fpm -F
+      "
 
   nginx:
     image: nginx:alpine
