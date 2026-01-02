@@ -1,34 +1,30 @@
 FROM php:8.4-fpm-alpine
 
+# 1. Установи всё необходимое
 RUN apk add --no-cache libzip-dev bash git unzip \
     && docker-php-ext-install pdo pdo_mysql zip
 
+# 2. Установи Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Установи в временную директорию с правами
-WORKDIR /tmp
-COPY ./app/composer.json ./
-RUN mkdir -p vendor && composer install --no-dev --optimize-autoloader --no-scripts --no-progress
+# 3. Создай пользователя сразу
+RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -D appuser
 
-# Скопируй vendor в нужное место
-RUN mkdir -p /var/www/app && cp -r vendor /var/www/app/vendor
+# 4. Создай рабочую директорию с правильными правами
+RUN mkdir -p /var/www/app && chown -R appuser:appuser /var/www
 
-WORKDIR /var/www
-COPY . .
-
-# 5. Создай пользователя
-RUN addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -D -h /home/appuser appuser \
-    && chown -R appuser:appuser /var/www
-
-# Создаем директории ЕСЛИ их нет
-RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache
-
-# Настраиваем права
-RUN chown -R appuser:appuser /var/www \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
+# 5. Работай под правильным пользователем С НАЧАЛА
 USER appuser
-WORKDIR /var/www
+WORKDIR /var/www/app
 
+# 6. Копируй composer.json под правильным пользователем
+COPY --chown=appuser:appuser ./app/composer.json ./
+
+# 7. Теперь composer install будет работать
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
+
+# 8. Скопируй остальное
+COPY --chown=appuser:appuser . /var/www
+
+# 9. Запускай
 CMD ["php-fpm", "-F"]
