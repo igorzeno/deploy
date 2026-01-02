@@ -38,25 +38,18 @@ jobs:
             EOF
             fi
 
-            # УСТАНОВКА ЗАВИСИМОСТЕЙ С ПРОВЕРКОЙ
+            # УСТАНОВКА ЗАВИСИМОСТЕЙ ЧЕРЕЗ DOCKER
+            echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
-            echo "Устанавливаем зависимости..."
             
-            # Проверяем есть ли composer
-            if ! command -v composer &> /dev/null; then
-              echo "Устанавливаем Composer..."
-              php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-              php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-              php -r "unlink('composer-setup.php');"
-            fi
+            # Используем Docker контейнер composer
+            docker run --rm -v $(pwd):/app -w /app composer:latest \
+              composer install --no-dev --optimize-autoloader --no-scripts 2>&1
             
-            # Устанавливаем зависимости
-            composer install --no-dev --optimize-autoloader --no-scripts 2>&1
-            
-            # Проверяем что vendor создался
+            # Проверяем vendor
             if [ -d "vendor" ]; then
               echo "✅ Vendor создан!"
-              ls -la vendor/ | head -5
+              ls -la vendor/ | head -3
             else
               echo "❌ Vendor не создан!"
               exit 1
