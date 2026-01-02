@@ -4,14 +4,17 @@ FROM php:8.4-fpm-alpine
 RUN apk add --no-cache libzip-dev bash \
     && docker-php-ext-install pdo pdo_mysql zip
 
-# 2. Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# 3. Пользователь
+WORKDIR /var/www/app
+COPY ./app/composer.json ./app/composer.lock ./
+
+# composer install падает из-за несовместимого .lock
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
+
 RUN addgroup -g 1000 appuser && \
     adduser -u 1000 -G appuser -D -h /home/appuser appuser
 
-# 4. Директории и права
 RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache \
     && chown -R appuser:appuser /var/www \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
