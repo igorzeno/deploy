@@ -10,6 +10,9 @@ WORKDIR /var/www/app
 # ТОЛЬКО composer.json
 COPY ./app/composer.json ./
 
+# 1. Дайте права на запись
+RUN chmod 777 .
+
 # Устанавливаем зависимости
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-scripts --no-progress
 
