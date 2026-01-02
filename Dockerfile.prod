@@ -1,26 +1,28 @@
 FROM php:8.4-fpm-alpine
 
-RUN apk add --no-cache libzip-dev \
+# 1. Установка зависимостей
+RUN apk add --no-cache libzip-dev bash \
     && docker-php-ext-install pdo pdo_mysql zip
 
-RUN apk add --no-cache bash
+# 2. Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# 3. Пользователь
 RUN addgroup -g 1000 appuser && \
     adduser -u 1000 -G appuser -D -h /home/appuser appuser
 
-WORKDIR /var/www/public
+# 4. Директории и права
+RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache \
+    && chown -R appuser:appuser /var/www \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# 1. Копируем ТОЛЬКО composer файлы
-COPY --chown=appuser:appuser composer.json composer.lock ./
-
-# 2. Устанавливаем Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# 3. Устанавливаем зависимости
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress --prefer-dist
-
-# 4. Копируем ВСЕ остальное
-COPY --chown=appuser:appuser . .
+# 5. Копируем код
+COPY --chown=appuser:appuser . /var/www
 
 USER appuser
+WORKDIR /var/www
+
+# 6. Устанавливаем зависимости
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
+
 CMD ["php-fpm"]
