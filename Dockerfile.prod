@@ -5,16 +5,21 @@ RUN apk add --no-cache libzip-dev bash git unzip \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# 1. Создай директорию и дай права
+RUN mkdir -p /var/www/app && chmod 777 /var/www/app
+
 WORKDIR /var/www/app
 
+# 2. Скопируй composer.json
 COPY ./app/composer.json ./
 
-# УСТАНОВИ ЗАВИСИМОСТИ ПОД ROOT (до создания appuser)
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
+# 3. Установи зависимости (попробуй без --no-progress)
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
+# 4. Скопируй остальное
 COPY . /var/www
 
-# Теперь создай пользователя
+# 5. Создай пользователя
 RUN addgroup -g 1000 appuser && \
     adduser -u 1000 -G appuser -D -h /home/appuser appuser \
     && chown -R appuser:appuser /var/www
