@@ -13,13 +13,18 @@ COPY ./app/composer.json ./
 # Устанавливаем зависимости
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
 
-# Копируем остальной код
+# Копируем ВЕСЬ код
 COPY . /var/www
 
-# Создаем пользователя ПОСЛЕ установки зависимостей
+# Создаем пользователя
 RUN addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -D -h /home/appuser appuser \
-    && chown -R appuser:appuser /var/www \
+    adduser -u 1000 -G appuser -D -h /home/appuser appuser
+
+# Создаем директории ЕСЛИ их нет
+RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache
+
+# Настраиваем права
+RUN chown -R appuser:appuser /var/www \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 USER appuser
