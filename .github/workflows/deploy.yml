@@ -17,14 +17,17 @@ jobs:
           script: |
             cd /var/www
 
+            # Клонируем если нет
             if [ ! -d ".git" ]; then
-            git clone https://github.com/igorzeno/deploy.git .
+              git clone https://github.com/igorzeno/deploy.git .
             fi
-           
+            
+            # Обновляем код
             git pull origin master 
 
+            # .env если нет
             if [ ! -f ".env" ]; then
-            cat > .env << EOF
+              cat > .env << EOF
             APP_NAME="My App Deploy"
             APP_ENV=production
             APP_DEBUG=false
@@ -38,22 +41,27 @@ jobs:
             EOF
             fi
 
+            # Устанавливаем зависимости НА СЕРВЕРЕ
+            if ! command -v composer &> /dev/null; then
+              php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+              php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+              php -r "unlink('composer-setup.php');"
+            fi
+            
+            cd app
+            composer install --no-dev --optimize-autoloader --no-scripts
+            cd ..
+
+            # Docker
             docker-compose -f docker-compose.prod.yml down
-            docker-compose -f docker-compose.prod.yml up -d --build --no-cache
+            docker-compose -f docker-compose.prod.yml up -d --build
 
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan config:clear
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan cache:clear
-            
-            docker-compose -f docker-compose.prod.yml exec -T app composer dump-autoload
-            
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
-            docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
-            
-            sleep 10
+            sleep 30
 
+            # Laravel команды (ОДИН раз!)
             docker-compose -f docker-compose.prod.yml exec -T app php artisan key:generate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
             docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache
             
-            echo "✅ Деплой завершён с миграциями!"
+            echo "✅ Деплой завершён!"
