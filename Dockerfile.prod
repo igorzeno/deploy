@@ -1,26 +1,26 @@
 FROM php:8.4-fpm-alpine
 
-# 1. Установка зависимостей
-RUN apk add --no-cache libzip-dev bash \
+RUN apk add --no-cache libzip-dev bash git unzip \
     && docker-php-ext-install pdo pdo_mysql zip
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /var/www/app
-COPY ./app/composer.json ./app/composer.lock ./
 
-# composer install падает из-за несовместимого .lock
+# ТОЛЬКО composer.json
+COPY ./app/composer.json ./
+
+# Устанавливаем зависимости
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
 
-RUN addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -D -h /home/appuser appuser
+# Копируем остальной код
+COPY . /var/www
 
-RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache \
+# Создаем пользователя ПОСЛЕ установки зависимостей
+RUN addgroup -g 1000 appuser && \
+    adduser -u 1000 -G appuser -D -h /home/appuser appuser \
     && chown -R appuser:appuser /var/www \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
-# 5. Копируем код
-COPY --chown=appuser:appuser . /var/www
 
 USER appuser
 WORKDIR /var/www
