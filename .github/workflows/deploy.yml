@@ -17,15 +17,12 @@ jobs:
           script: |
             cd /var/www
 
-            # Клонируем если нет
             if [ ! -d ".git" ]; then
               git clone https://github.com/igorzeno/deploy.git .
             fi
             
-            # Обновляем код
             git pull origin master 
 
-            # .env если нет
             if [ ! -f ".env" ]; then
               cat > .env << EOF
             APP_NAME="My App Deploy"
@@ -41,24 +38,37 @@ jobs:
             EOF
             fi
 
-            # Устанавливаем зависимости НА СЕРВЕРЕ
+            # УСТАНОВКА ЗАВИСИМОСТЕЙ С ПРОВЕРКОЙ
+            cd /var/www/app
+            echo "Устанавливаем зависимости..."
+            
+            # Проверяем есть ли composer
             if ! command -v composer &> /dev/null; then
+              echo "Устанавливаем Composer..."
               php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
               php composer-setup.php --install-dir=/usr/local/bin --filename=composer
               php -r "unlink('composer-setup.php');"
             fi
             
-            cd app
-            composer install --no-dev --optimize-autoloader --no-scripts
-            cd ..
+            # Устанавливаем зависимости
+            composer install --no-dev --optimize-autoloader --no-scripts 2>&1
+            
+            # Проверяем что vendor создался
+            if [ -d "vendor" ]; then
+              echo "✅ Vendor создан!"
+              ls -la vendor/ | head -5
+            else
+              echo "❌ Vendor не создан!"
+              exit 1
+            fi
+            
+            cd /var/www
 
-            # Docker
             docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d --build
 
             sleep 30
 
-            # Laravel команды (ОДИН раз!)
             docker-compose -f docker-compose.prod.yml exec -T app php artisan key:generate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
             docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache
