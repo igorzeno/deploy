@@ -5,19 +5,16 @@ RUN apk add --no-cache libzip-dev bash git unzip \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# 1. Создай директорию и дай права
-RUN mkdir -p /var/www/app && chmod 777 /var/www/app
-
-WORKDIR /var/www/app
-
-# 2. Скопируй composer.json
+# Установи в временную директорию с правами
+WORKDIR /tmp
 COPY ./app/composer.json ./
+RUN mkdir -p vendor && composer install --no-dev --optimize-autoloader --no-scripts --no-progress
 
-# 3. Установи зависимости (попробуй без --no-progress)
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+# Скопируй vendor в нужное место
+RUN mkdir -p /var/www/app && cp -r vendor /var/www/app/vendor
 
-# 4. Скопируй остальное
-COPY . /var/www
+WORKDIR /var/www
+COPY . .
 
 # 5. Создай пользователя
 RUN addgroup -g 1000 appuser && \
