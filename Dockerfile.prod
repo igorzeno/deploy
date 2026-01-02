@@ -3,25 +3,21 @@ FROM php:8.4-fpm-alpine
 RUN apk add --no-cache libzip-dev bash git unzip \
     && docker-php-ext-install pdo pdo_mysql zip
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 WORKDIR /var/www/app
 
-# ТОЛЬКО composer.json
 COPY ./app/composer.json ./
 
-# 1. Дайте права на запись
-RUN chmod 777 .
+# УСТАНОВИ ЗАВИСИМОСТИ ПОД ROOT (до создания appuser)
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress
 
-# Устанавливаем зависимости
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-scripts --no-progress
-
-# Копируем ВЕСЬ код
 COPY . /var/www
 
-# Создаем пользователя
+# Теперь создай пользователя
 RUN addgroup -g 1000 appuser && \
-    adduser -u 1000 -G appuser -D -h /home/appuser appuser
+    adduser -u 1000 -G appuser -D -h /home/appuser appuser \
+    && chown -R appuser:appuser /var/www
 
 # Создаем директории ЕСЛИ их нет
 RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache
