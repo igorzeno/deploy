@@ -14,6 +14,7 @@ RUN mkdir -p /var/www/app/storage/framework/sessions \
     /var/www/app/storage/app/public \
     /var/www/app/bootstrap/cache \
     && chmod -R 755 /var/www/app/storage \
+    && chmod -R 755 /var/www/app/storage/logs \
     && chmod -R 775 /var/www/app/storage/framework/sessions \
     /var/www/app/storage/framework/cache \
     /var/www/app/storage/framework/views \
