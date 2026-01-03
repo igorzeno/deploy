@@ -24,10 +24,8 @@ jobs:
             git pull origin master 
 
             echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
-            # Ядерный вариант - пересоздаем все
             sudo rm -rf storage bootstrap/cache 2>/dev/null || true
             
-            # Создаем папки по одной
             sudo mkdir -p storage
             sudo mkdir -p storage/framework
             sudo mkdir -p storage/framework/sessions
@@ -37,7 +35,6 @@ jobs:
             sudo mkdir -p bootstrap
             sudo mkdir -p bootstrap/cache
             
-            # Даем всем права
             sudo chmod -R 777 storage bootstrap/cache
  
             # Просто записываем переменные напрямую
@@ -56,7 +53,6 @@ jobs:
             echo "Файл .env создан"
             ls -la .env
 
-            # УСТАНОВКА ЗАВИСИМОСТЕЙ ЧЕРЕЗ DOCKER
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
             
@@ -64,7 +60,6 @@ jobs:
             docker run --rm -v $(pwd):/app -w /app composer:latest \
               composer install --no-dev --optimize-autoloader --no-scripts 2>&1
             
-            # Проверяем vendor
             if [ -d "vendor" ]; then
               echo "✅ Vendor создан!"
               ls -la vendor/ | head -3
@@ -84,13 +79,10 @@ jobs:
             
             # 3. ВСЕ команды в ОДНОМ run
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
-             
-            # Then run commands
             php artisan migrate:refresh --force
             php artisan db:seed --force
             "
             
-            # 4. Start all services
             docker-compose -f docker-compose.prod.yml up -d
             
             echo "✅ Done!"

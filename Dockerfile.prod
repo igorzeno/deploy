@@ -16,5 +16,4 @@ USER appuser
 WORKDIR /var/www
 
 COPY --chown=appuser:appuser . /var/www
-
 CMD ["php-fpm", "-F"]
