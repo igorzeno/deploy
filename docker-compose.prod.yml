@@ -22,6 +22,7 @@ services:
       APP_DEBUG: false
     volumes:
       - ./app:/var/www
+      - ./.env:/var/www/.env:ro
       - storage_data:/var/www/storage
       - session_data:/var/www/storage/framework/sessions
     depends_on:
