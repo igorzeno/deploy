@@ -57,28 +57,21 @@ jobs:
             fi
             
             cd /var/www
-                        
-            # 3. Запускаем БД
+            
+            # 3. Собираем образ (если нужно)
+            docker-compose -f docker-compose.prod.yml build app
+            
+            # 4. Запускаем БД
             docker-compose -f docker-compose.prod.yml up -d db
+            sleep 25
             
-            # 4. Ждем
-            sleep 30
-            
-            # 5. Выполняем setup в отдельном процессе
-            echo "Setting up Laravel..."
-            docker-compose -f docker-compose.prod.yml run --rm --build --no-cache app sh -c "
-            php artisan migrate --force
-            php artisan db:seed --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            # 5. Выполняем setup (БЕЗ --no-cache!)
+            docker-compose -f docker-compose.prod.yml run --rm app sh -c "
+              php artisan migrate --force
+              php artisan db:seed --force
             "
             
-            # 6. Запускаем все сервисы
-            docker-compose -f docker-compose.prod.yml up -d --build
+            # 6. Запускаем все
+            docker-compose -f docker-compose.prod.yml up -d
             
-            # 7. Проверяем
-            sleep 10
-            docker-compose -f docker-compose.prod.yml ps
-           
-            echo "✅ Деплой завершён!"
+            echo "✅ Done!"
