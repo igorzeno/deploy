@@ -75,22 +75,25 @@ jobs:
             
             cd /var/www
             
-            # 3. Собираем образ (если нужно)
+            # 1. Build app
             docker-compose -f docker-compose.prod.yml build app
             
-            # 4. Запускаем БД
+            # 2. Start DB only
             docker-compose -f docker-compose.prod.yml up -d db
             sleep 25
             
-            # 5. Выполняем setup (БЕЗ --no-cache!)
+            # 3. ВСЕ команды в ОДНОМ run
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
+            # Fix permissions FIRST
+            chmod -R 777 /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
             
-            # 4. Выполняем миграции и сиды
+            # Then run commands
+            php artisan key:generate --force
             php artisan migrate --force
             php artisan db:seed --force
             "
             
-            # 6. Запускаем все
+            # 4. Start all services
             docker-compose -f docker-compose.prod.yml up -d
             
             echo "✅ Done!"
