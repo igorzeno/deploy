@@ -22,6 +22,23 @@ jobs:
             fi
             
             git pull origin master 
+
+            echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
+            # Ядерный вариант - пересоздаем все
+            sudo rm -rf storage bootstrap/cache 2>/dev/null || true
+            
+            # Создаем папки по одной
+            sudo mkdir -p storage
+            sudo mkdir -p storage/framework
+            sudo mkdir -p storage/framework/sessions
+            sudo mkdir -p storage/framework/views
+            sudo mkdir -p storage/framework/cache
+            sudo mkdir -p storage/logs
+            sudo mkdir -p bootstrap
+            sudo mkdir -p bootstrap/cache
+            
+            # Даем всем права
+            sudo chmod -R 777 storage bootstrap/cache
  
             # Просто записываем переменные напрямую
             echo 'APP_NAME="My App Deploy"' > .env
@@ -67,18 +84,6 @@ jobs:
             
             # 5. Выполняем setup (БЕЗ --no-cache!)
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
-            # 1. Сначала фиксим права
-            echo 'Fixing permissions...'
-            mkdir -p /var/www/storage/framework/{sessions,views,cache}
-            mkdir -p /var/www/storage/logs
-            mkdir -p /var/www/bootstrap/cache
-            
-            # 2. Даем ВСЕ права (777) - просто чтобы работало
-            chmod -R 777 /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
-            
-            # 3. Проверяем
-            echo 'Testing write access...'
-            touch /var/www/storage/test.txt && echo '✅ Can write' && rm /var/www/storage/test.txt
             
             # 4. Выполняем миграции и сиды
             php artisan migrate --force
