@@ -43,9 +43,16 @@ jobs:
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
             
-            echo "=== 1. Create storage directories on host ==="
+            # 1. Удалите volume с правами
+            docker volume rm $(docker volume ls -q | grep storage) 2>/dev/null || true
+            
+            # 2. Удалите папки на хосте
             sudo rm -rf storage bootstrap/cache
+            
+            # 3. Создайте заново
             mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
+            
+            # 4. Дайте ВСЕ права
             sudo chmod -R 777 storage bootstrap/cache
             
             # Используем Docker контейнер composer
