@@ -1,5 +1,6 @@
 FROM php:8.4-fpm-alpine
 
+RUN apk add --no-cache mariadb-client
 RUN apk add --no-cache libzip-dev bash git unzip \
     && docker-php-ext-install pdo pdo_mysql zip
 
