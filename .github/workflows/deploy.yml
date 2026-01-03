@@ -43,18 +43,6 @@ jobs:
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
             
-            # 1. Удалите volume с правами
-            docker volume rm $(docker volume ls -q | grep storage) 2>/dev/null || true
-            
-            # 2. Удалите папки на хосте
-            sudo rm -rf storage bootstrap/cache
-            
-            # 3. Создайте заново
-            mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
-            
-            # 4. Дайте ВСЕ права
-            sudo chmod -R 777 storage bootstrap/cache
-            
             # Используем Docker контейнер composer
             docker run --rm -v $(pwd):/app -w /app composer:latest \
               composer install --no-dev --optimize-autoloader --no-scripts 2>&1
@@ -79,8 +67,22 @@ jobs:
             
             # 5. Выполняем setup (БЕЗ --no-cache!)
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
-              php artisan migrate --force
-              php artisan db:seed --force
+            # 1. Сначала фиксим права
+            echo 'Fixing permissions...'
+            mkdir -p /var/www/app/storage/framework/{sessions,views,cache}
+            mkdir -p /var/www/app/storage/logs
+            mkdir -p /var/www/app/bootstrap/cache
+            
+            # 2. Даем ВСЕ права (777) - просто чтобы работало
+            chmod -R 777 /var/www/app/storage /var/www/app/bootstrap/cache 2>/dev/null || true
+            
+            # 3. Проверяем
+            echo 'Testing write access...'
+            touch /var/www/app/storage/test.txt && echo '✅ Can write' && rm /var/www/app/storage/test.txt
+            
+            # 4. Выполняем миграции и сиды
+            php artisan migrate --force
+            php artisan db:seed --force
             "
             
             # 6. Запускаем все
