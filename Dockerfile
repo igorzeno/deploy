@@ -16,12 +16,19 @@ RUN addgroup -g 1000 appuser && \
     adduser -u 1000 -G appuser -D -h /home/appuser appuser
 
 # 2. Создаем ВСЕ необходимые директории ОДНОЙ командой
-RUN mkdir -p storage/framework/{sessions,views,cache} \
-    && mkdir -p storage/logs \
-    && chmod -R 775 storage \
-    && chown -R www-data:www-data storage \
-    && chmod -R 775 bootstrap/cache \
-    && chown -R www-data:www-data bootstrap/cache
+RUN mkdir -p /var/www/storage/framework/sessions \
+    /var/www/storage/framework/views \
+    /var/www/storage/framework/cache/data \
+    /var/www/storage/framework/testing \
+    /var/www/storage/logs \
+    /var/www/storage/app/public \
+    /var/www/bootstrap/cache \
+    && chmod -R 755 /var/www/storage \
+    && chmod -R 775 /var/www/storage/framework/sessions \
+    /var/www/storage/framework/cache \
+    /var/www/storage/framework/views \
+    && chmod -R 775 /var/www/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # 3. Меняем владельца ВСЕХ директорий
 RUN chown -R appuser:appuser /var/www
