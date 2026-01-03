@@ -10,6 +10,9 @@ RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cach
 
 RUN mkdir -p /var/www/app && chown -R appuser:appuser /var/www
 
+COPY ./docker/.bashrc /home/appuser/.bashrc
+RUN chmod 644 /home/appuser/.bashrc
+
 USER appuser
 WORKDIR /var/www
 
