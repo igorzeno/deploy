@@ -22,10 +22,6 @@ jobs:
             fi
             
             git pull origin master 
-
-            echo "=== 1. Create storage directories on host ==="
-            # Просто создаем папки
-            mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
  
             # Просто записываем переменные напрямую
             echo 'APP_NAME="My App Deploy"' > .env
@@ -46,6 +42,10 @@ jobs:
             # УСТАНОВКА ЗАВИСИМОСТЕЙ ЧЕРЕЗ DOCKER
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
+            
+            echo "=== 1. Create storage directories on host ==="
+            # Просто создаем папки
+            mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
             
             # Используем Docker контейнер composer
             docker run --rm -v $(pwd):/app -w /app composer:latest \

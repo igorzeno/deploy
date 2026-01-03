@@ -26,7 +26,7 @@ services:
       - ./.env:/var/www/.env:ro
       - storage_data:/var/www/storage
       - session_data:/var/www/storage/framework/sessions
-      - ./bootstrap/cache:/var/www/bootstrap/cache
+#      - ./bootstrap/cache:/var/www/bootstrap/cache
     depends_on:
       - db
     networks:
