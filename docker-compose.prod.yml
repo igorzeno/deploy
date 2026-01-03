@@ -24,8 +24,8 @@ services:
     volumes:
       - ./app:/var/www
       - ./.env:/var/www/.env:ro
-      - storage_data:/var/www/storage
-      - session_data:/var/www/storage/framework/sessions
+      - storage_data:/var/www/app/storage
+      - session_data:/var/www/app/storage/framework/sessions
 #      - ./bootstrap/cache:/var/www/bootstrap/cache
     depends_on:
       - db
