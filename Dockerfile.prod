@@ -5,6 +5,8 @@ RUN apk add --no-cache libzip-dev bash git unzip \
 
 RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -D appuser
 
+RUN mkdir -p /var/www/storage/framework/{sessions,cache} /var/www/bootstrap/cache
+
 RUN mkdir -p /var/www/app && chown -R appuser:appuser /var/www
 
 USER appuser
