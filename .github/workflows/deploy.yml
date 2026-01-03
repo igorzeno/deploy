@@ -21,36 +21,24 @@ jobs:
               git clone https://github.com/igorzeno/deploy.git .
             fi
             
-            cat > .env << 'EOF'
-            APP_NAME="My App Deploy"
-            APP_ENV=production
-            APP_DEBUG=false
-            APP_URL=http://${{ secrets.SSH_HOST }}
-            DB_CONNECTION=mysql
-            DB_HOST=db
-            DB_PORT=3306
-            DB_DATABASE=laravel
-            DB_USERNAME=root
-            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            EOF
+            git pull origin master 
+ 
+            # Просто записываем переменные напрямую
+            echo 'APP_NAME="My App Deploy"' > .env
+            echo 'APP_ENV=production' >> .env
+            echo 'APP_DEBUG=false' >> .env
+            echo 'APP_URL=http://${{ secrets.SSH_HOST }}' >> .env
+            echo 'DB_CONNECTION=mysql' >> .env
+            echo 'DB_HOST=db' >> .env
+            echo 'DB_PORT=3306' >> .env
+            echo 'DB_DATABASE=laravel' >> .env
+            echo 'DB_USERNAME=root' >> .env
+            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> .env
             
-            # 3. Проверяем что файл создан
-            echo "=== Проверяем .env файл ==="
+            echo "Файл .env создан"
             ls -la .env
-            echo "Длина пароля: $(grep DB_PASSWORD .env | cut -d= -f2 | wc -c) символов"
-            
-            # 4. Запускаем Docker
-            docker-compose -f deploy.yml down
-            docker-compose -f deploy.yml up -d
-            
-            # 5. Проверяем подключение к БД
-            sleep 10
-            echo "=== Проверяем подключение к БД ==="
-            docker-compose -f deploy.yml exec -T db mysql -uroot -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;" || echo "Ошибка подключения"
-          
-          
 
-          # УСТАНОВКА ЗАВИСИМОСТЕЙ ЧЕРЕЗ DOCKER
+            # УСТАНОВКА ЗАВИСИМОСТЕЙ ЧЕРЕЗ DOCKER
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
             
