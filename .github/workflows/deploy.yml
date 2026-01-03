@@ -44,8 +44,9 @@ jobs:
             cd /var/www/app
             
             echo "=== 1. Create storage directories on host ==="
-            # Просто создаем папки
+            sudo rm -rf storage bootstrap/cache
             mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
+            sudo chmod -R 777 storage bootstrap/cache
             
             # Используем Docker контейнер composer
             docker run --rm -v $(pwd):/app -w /app composer:latest \
