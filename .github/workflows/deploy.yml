@@ -80,7 +80,6 @@ jobs:
             # 3. ВСЕ команды в ОДНОМ run
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
             php artisan migrate:refresh --force
-#            php artisan db:seed --force
             "
             
             docker-compose -f docker-compose.prod.yml up -d
