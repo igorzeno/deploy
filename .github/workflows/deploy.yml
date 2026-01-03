@@ -66,7 +66,7 @@ jobs:
             
             # 5. Выполняем setup в отдельном процессе
             echo "Setting up Laravel..."
-            docker-compose -f docker-compose.prod.yml run --rm app sh -c "
+            docker-compose -f docker-compose.prod.yml run --rm --build --no-cache app sh -c "
             php artisan migrate --force
             php artisan db:seed --force
             php artisan config:cache
