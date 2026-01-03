@@ -69,16 +69,16 @@ jobs:
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
             # 1. Сначала фиксим права
             echo 'Fixing permissions...'
-            mkdir -p /var/www/app/storage/framework/{sessions,views,cache}
-            mkdir -p /var/www/app/storage/logs
-            mkdir -p /var/www/app/bootstrap/cache
+            mkdir -p /var/www/storage/framework/{sessions,views,cache}
+            mkdir -p /var/www/storage/logs
+            mkdir -p /var/www/bootstrap/cache
             
             # 2. Даем ВСЕ права (777) - просто чтобы работало
-            chmod -R 777 /var/www/app/storage /var/www/app/bootstrap/cache 2>/dev/null || true
+            chmod -R 777 /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
             
             # 3. Проверяем
             echo 'Testing write access...'
-            touch /var/www/app/storage/test.txt && echo '✅ Can write' && rm /var/www/app/storage/test.txt
+            touch /var/www/storage/test.txt && echo '✅ Can write' && rm /var/www/storage/test.txt
             
             # 4. Выполняем миграции и сиды
             php artisan migrate --force

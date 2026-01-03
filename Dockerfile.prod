@@ -7,9 +7,9 @@ RUN apk add --no-cache libzip-dev bash git unzip \
 RUN addgroup -g 1000 appuser && adduser -u 1000 -G appuser -D appuser
 
 # Создаем ТОЛЬКО структуру папок
-RUN mkdir -p /var/www/app/storage/framework/{sessions,views,cache} /var/www/app/storage/logs /var/www/app/bootstrap/cache
-
 RUN mkdir -p /var/www/app && chown -R appuser:appuser /var/www
+RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} /var/www/storage/logs /var/www/bootstrap/cache
+
 
 COPY ./docker/.bashrc /home/appuser/.bashrc
 RUN chmod 644 /home/appuser/.bashrc
