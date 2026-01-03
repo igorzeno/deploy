@@ -12,6 +12,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
 
   app:
+    user: "1000:1000"
     build:
       context: .
       dockerfile: Dockerfile.prod  # отдельный Dockerfile для prod
@@ -25,6 +26,7 @@ services:
       - ./.env:/var/www/.env:ro
       - storage_data:/var/www/storage
       - session_data:/var/www/storage/framework/sessions
+      - ./bootstrap/cache:/var/www/bootstrap/cache
     depends_on:
       - db
     networks:
