@@ -86,8 +86,7 @@ jobs:
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
              
             # Then run commands
-            php artisan migrate --force
-            php artisan db:seed --force
+            php artisan migrate:refresh --seed
             "
             
             # 4. Start all services
