@@ -21,6 +21,8 @@ jobs:
               git clone https://github.com/igorzeno/deploy.git .
             fi
             
+            docker rm -f laravel_phpmyadmin_dev
+            
             git pull origin master 
 
             echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
