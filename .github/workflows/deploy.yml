@@ -25,27 +25,27 @@ jobs:
           if [ ! -f ".env.production.template" ]; then
             echo "❌ Template not found! Creating minimal one..."
             cat > .env.production.template << "EOF"
-            APP_NAME="My App Deploy"
-            APP_KEY=${APP_KEY}
-            APP_ENV=production
-            APP_DEBUG=false
-            APP_URL=http://${SSH_HOST}:8080
-            
-            DB_CONNECTION=mysql
-            DB_HOST=db
-            DB_PORT=3306
-            DB_DATABASE=laravel
-            DB_USERNAME=root
-            DB_PASSWORD=${DB_PASSWORD}
-            EOF
+          APP_NAME="My App Deploy"
+          APP_KEY=${APP_KEY}
+          APP_ENV=production
+          APP_DEBUG=false
+          APP_URL=http://${SSH_HOST}:8080
+          
+          DB_CONNECTION=mysql
+          DB_HOST=db
+          DB_PORT=3306
+          DB_DATABASE=laravel
+          DB_USERNAME=root
+          DB_PASSWORD=${DB_PASSWORD}
+          EOF
             fi
             
             # Генерируем .env
             envsubst < .env.production.template > .env
             
             echo "✅ .env generated"
-            echo "📋 Preview (без секретов):"
-            grep -v -E "(PASSWORD|KEY)" .env || head -8 .env
+            echo "📋 Preview:"
+            head -8 .env
           
           - name: Deploy via SSH
             uses: appleboy/ssh-action@v0.1.5
@@ -66,31 +66,29 @@ jobs:
                 echo "📥 Pulling latest changes..."
                 git pull origin master 
                 
-                echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
+                echo "=== 1. FIX STORAGE ==="
                 sudo rm -rf storage bootstrap/cache 2>/dev/null || true
-                
-                sudo mkdir -p storage
-                sudo mkdir -p storage/framework
-                sudo mkdir -p storage/framework/sessions
-                sudo mkdir -p storage/framework/views
-                sudo mkdir -p storage/framework/cache
-                sudo mkdir -p storage/logs
-                sudo mkdir -p bootstrap
-                sudo mkdir -p bootstrap/cache
-                
+                sudo mkdir -p storage/framework/{sessions,views,cache}
+                sudo mkdir -p storage/logs bootstrap/cache
                 sudo chmod -R 777 storage bootstrap/cache
                 
                 echo "=== 2. COPY GENERATED .ENV ==="
-                # Ключевое исправление: сохраняем в переменную сначала
-                ENV_CONTENT="$(cat .env)"
-                cat > .env << EOF
-            $ENV_CONTENT
+                cat > .env << 'EOF'
+            $(cat .env)
             EOF
             
-            echo "✅ .env created from template"
-            echo "📄 First 3 lines (без секретов):"
-            head -3 .env | grep -v -E "(PASSWORD|KEY)"
-
+            echo "✅ .env created"
+            echo "📄 First 3 lines:"
+            head -3 .env
+            
+            echo "=== 3. START DOCKER ==="
+            docker-compose down || true
+            docker-compose up -d --build
+            
+            echo "=== 4. HEALTH CHECK ==="
+            sleep 3
+            
+            
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
             
