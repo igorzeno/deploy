@@ -21,23 +21,10 @@ jobs:
               git clone https://github.com/igorzeno/deploy.git .
             fi
             
-            docker rm -f laravel_phpmyadmin_dev
-            
             git pull origin master 
-
-            echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
-            sudo rm -rf storage bootstrap/cache 2>/dev/null || true
-            
-            sudo mkdir -p storage
-            sudo mkdir -p storage/framework
-            sudo mkdir -p storage/framework/sessions
-            sudo mkdir -p storage/framework/views
-            sudo mkdir -p storage/framework/cache
-            sudo mkdir -p storage/logs
-            sudo mkdir -p bootstrap
-            sudo mkdir -p bootstrap/cache
-            
-            sudo chmod -R 777 storage storage/logs bootstrap/cache
+          
+            sudo mkdir -p app/storage/{framework/{sessions,views,cache},logs} app/bootstrap/cache
+            sudo chmod -R 777 app/storage app/bootstrap/cache
             
             # Просто записываем переменные напрямую
             echo 'APP_NAME="My App Deploy"' > .env

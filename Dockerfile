@@ -17,7 +17,7 @@ RUN addgroup -g 1000 appuser && \
 
 # 2. Создаем ВСЕ необходимые директории ОДНОЙ командой
 RUN mkdir -p /var/www/app/storage /var/www/app/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/app \
+    && chown -R appuser:appuser /var/www/app \
     && chmod -R 775 /var/www/app/storage /var/www/app/bootstrap/cache
 
 # 3. Меняем владельца ВСЕХ директорий
