@@ -85,7 +85,7 @@ jobs:
             docker-compose -f docker-compose.prod.yml up -d db
             sleep 25
             
-            # 3. ВСЕ команды в ОДНОМ run
+            # 3. ВСЕ команды в ОДНОМ 
             docker-compose -f docker-compose.prod.yml run --rm app sh -c "
             php artisan migrate:refresh --force
             php artisan db:seed --force
