@@ -11,12 +11,6 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::prefix('v1')->group(function () {
-    Route::get('/tours/search', [TourSearchController::class, 'search']);
-//    Route::get('/autocomplete', [TourSearchController::class, 'autocomplete']);
-//    Route::get('/aggregations', [TourSearchController::class, 'aggregations']);
-});
-
-Route::prefix('v1')->group(function () {
     Route::apiResource('travels', TravelController::class);
     Route::apiResource('tours', TourController::class);
 
