@@ -19,7 +19,7 @@ class TravelSeederProd extends Seeder
             // Публичные путешествия
             [
                 'is_public' => true,
-                'name' => 'Romantic Paris Getaway',
+                'name' => 'Romantic Paris Getaway 2',
                 'type' => 'romantic',
                 'number_of_days' => 5,
                 'created_at' => $now,
@@ -27,7 +27,7 @@ class TravelSeederProd extends Seeder
             ],
             [
                 'is_public' => true,
-                'name' => 'Japanese Cultural Journey',
+                'name' => 'Japanese Cultural Journey 2',
                 'type' => 'cultural',
                 'number_of_days' => 14,
                 'created_at' => $now,
@@ -35,7 +35,7 @@ class TravelSeederProd extends Seeder
             ],
             [
                 'is_public' => true,
-                'name' => 'Thai Adventure Expedition',
+                'name' => 'Thai Adventure Expedition 2',
                 'type' => 'adventure',
                 'number_of_days' => 10,
                 'created_at' => $now,
