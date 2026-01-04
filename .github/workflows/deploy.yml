@@ -22,74 +22,74 @@ jobs:
           echo "🔧 Generating .env from template..."
           
           # Проверяем наличие шаблона
-           run: |
-            if [ ! -f ".env.production.template" ]; then
+          if [ ! -f ".env.production.template" ]; then
             echo "❌ Template not found! Creating minimal one..."
             cat > .env.production.template << "EOF"
-          APP_NAME="My App Deploy"
-          APP_KEY=${APP_KEY}          # ← Теперь работает!
-          APP_ENV=production
-          APP_DEBUG=false
-          APP_URL=http://${SSH_HOST}:8080  # ← Теперь работает!
-          
-          DB_CONNECTION=mysql
-          DB_HOST=db
-          DB_PORT=3306
-          DB_DATABASE=laravel
-          DB_USERNAME=root
-          DB_PASSWORD=${DB_PASSWORD}  # ← Теперь работает!
-          EOF
-          fi
-          
-          # Генерируем .env
-          envsubst < .env.production.template > .env
-          
-          echo "✅ .env generated"
-          echo "📋 Preview:"
-          head -10 .env
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v0.1.5
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          port: ${{ secrets.SSH_PORT }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /var/www
-
-            # Если папка пустая - клонируем
-            if [ ! -d ".git" ]; then
-              echo "📥 Cloning repository..."
-              git clone https://github.com/igorzeno/deploy.git .
+            APP_NAME="My App Deploy"
+            APP_KEY=${APP_KEY}
+            APP_ENV=production
+            APP_DEBUG=false
+            APP_URL=http://${SSH_HOST}:8080
+            
+            DB_CONNECTION=mysql
+            DB_HOST=db
+            DB_PORT=3306
+            DB_DATABASE=laravel
+            DB_USERNAME=root
+            DB_PASSWORD=${DB_PASSWORD}
+            EOF
             fi
             
-            echo "📥 Pulling latest changes..."
-            git pull origin master 
-
-            echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
-            sudo rm -rf storage bootstrap/cache 2>/dev/null || true
+            # Генерируем .env
+            envsubst < .env.production.template > .env
             
-            sudo mkdir -p storage
-            sudo mkdir -p storage/framework
-            sudo mkdir -p storage/framework/sessions
-            sudo mkdir -p storage/framework/views
-            sudo mkdir -p storage/framework/cache
-            sudo mkdir -p storage/logs
-            sudo mkdir -p bootstrap
-            sudo mkdir -p bootstrap/cache
-            
-            sudo chmod -R 777 storage bootstrap/cache
-            
-            echo "=== 2. COPY GENERATED .ENV ==="
-            # Копируем сгенерированный .env с GitHub Actions runner
-            cat > .env << 'ENV_EOF'
-            $(cat .env)
-            ENV_EOF
+            echo "✅ .env generated"
+            echo "📋 Preview (без секретов):"
+            grep -v -E "(PASSWORD|KEY)" .env || head -8 .env
+          
+          - name: Deploy via SSH
+            uses: appleboy/ssh-action@v0.1.5
+            with:
+              host: ${{ secrets.SSH_HOST }}
+              username: ${{ secrets.SSH_USERNAME }}
+              port: ${{ secrets.SSH_PORT }}
+              key: ${{ secrets.SSH_PRIVATE_KEY }}
+              script: |
+                cd /var/www
+                
+                # Если папка пустая - клонируем
+                if [ ! -d ".git" ]; then
+                  echo "📥 Cloning repository..."
+                  git clone https://github.com/igorzeno/deploy.git .
+                fi
+                
+                echo "📥 Pulling latest changes..."
+                git pull origin master 
+                
+                echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
+                sudo rm -rf storage bootstrap/cache 2>/dev/null || true
+                
+                sudo mkdir -p storage
+                sudo mkdir -p storage/framework
+                sudo mkdir -p storage/framework/sessions
+                sudo mkdir -p storage/framework/views
+                sudo mkdir -p storage/framework/cache
+                sudo mkdir -p storage/logs
+                sudo mkdir -p bootstrap
+                sudo mkdir -p bootstrap/cache
+                
+                sudo chmod -R 777 storage bootstrap/cache
+                
+                echo "=== 2. COPY GENERATED .ENV ==="
+                # Ключевое исправление: сохраняем в переменную сначала
+                ENV_CONTENT="$(cat .env)"
+                cat > .env << EOF
+            $ENV_CONTENT
+            EOF
             
             echo "✅ .env created from template"
-            echo "📄 First 5 lines:"
-            head -5 .env
+            echo "📄 First 3 lines (без секретов):"
+            head -3 .env | grep -v -E "(PASSWORD|KEY)"
 
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
