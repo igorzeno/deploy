@@ -83,9 +83,9 @@ jobs:
             
             echo "=== 2. COPY GENERATED .ENV ==="
             # Копируем сгенерированный .env с GitHub Actions runner
-            cat > .env << 'EOF'
+            cat > .env << 'ENV_EOF'
             $(cat .env)
-            EOF
+            ENV_EOF
             
             echo "✅ .env created from template"
             echo "📄 First 5 lines:"
