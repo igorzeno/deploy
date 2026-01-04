@@ -14,10 +14,6 @@ class TravelSeederProd extends Seeder
     public function run(): void
     {
         $now = now();
-
-        // Очищаем таблицу если она не пустая
-        DB::table('travels')->truncate();
-
         // Примеры путешествий для продакшена
         $travels = [
             // Публичные путешествия
