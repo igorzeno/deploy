@@ -22,22 +22,23 @@ jobs:
           echo "🔧 Generating .env from template..."
           
           # Проверяем наличие шаблона
-          if [ ! -f ".env.production.template" ]; then
+           run: |
+            if [ ! -f ".env.production.template" ]; then
             echo "❌ Template not found! Creating minimal one..."
-            cat > .env.production.template << 'EOF'
-            APP_NAME="My App Deploy"
-            APP_KEY=${APP_KEY}
-            APP_ENV=production
-            APP_DEBUG=false
-            APP_URL=http://${SSH_HOST}:8080
+            cat > .env.production.template << "EOF"
+          APP_NAME="My App Deploy"
+          APP_KEY=${APP_KEY}          # ← Теперь работает!
+          APP_ENV=production
+          APP_DEBUG=false
+          APP_URL=http://${SSH_HOST}:8080  # ← Теперь работает!
           
-            DB_CONNECTION=mysql
-            DB_HOST=db
-            DB_PORT=3306
-            DB_DATABASE=laravel
-            DB_USERNAME=root
-            DB_PASSWORD=${DB_PASSWORD}
-            EOF
+          DB_CONNECTION=mysql
+          DB_HOST=db
+          DB_PORT=3306
+          DB_DATABASE=laravel
+          DB_USERNAME=root
+          DB_PASSWORD=${DB_PASSWORD}  # ← Теперь работает!
+          EOF
           fi
           
           # Генерируем .env
