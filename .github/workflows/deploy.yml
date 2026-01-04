@@ -25,19 +25,19 @@ jobs:
           if [ ! -f ".env.production.template" ]; then
             echo "❌ Template not found! Creating minimal one..."
             cat > .env.production.template << "EOF"
-          APP_NAME="My App Deploy"
-          APP_KEY=${APP_KEY}
-          APP_ENV=production
-          APP_DEBUG=false
-          APP_URL=http://${SSH_HOST}:8080
-          
-          DB_CONNECTION=mysql
-          DB_HOST=db
-          DB_PORT=3306
-          DB_DATABASE=laravel
-          DB_USERNAME=root
-          DB_PASSWORD=${DB_PASSWORD}
-          EOF
+APP_NAME="My App Deploy"
+APP_KEY=${APP_KEY}
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=http://${SSH_HOST}:8080
+
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=root
+DB_PASSWORD=${DB_PASSWORD}
+EOF
             fi
             
             # Генерируем .env
