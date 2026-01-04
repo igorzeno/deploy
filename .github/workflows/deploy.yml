@@ -42,13 +42,9 @@ jobs:
             echo "Файл .env создан"
             ls -la .env
             
-            echo "=== 3. START DOCKER ==="
+            echo "START DOCKER"
             docker-compose -f docker-compose.prod.yml down
             docker-compose -f docker-compose.prod.yml up -d --build
-                      
-            echo "=== 4. HEALTH CHECK ==="
-            sleep 3
-            
             
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
