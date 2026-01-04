@@ -43,9 +43,9 @@ jobs:
             ls -la .env
             
             echo "=== 3. START DOCKER ==="
-            docker-compose down || true
-            docker-compose up -d --build
-            
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d --build
+                      
             echo "=== 4. HEALTH CHECK ==="
             sleep 3
             
