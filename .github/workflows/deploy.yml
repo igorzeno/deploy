@@ -7,6 +7,46 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install envsubst
+        run: sudo apt-get update && sudo apt-get install -y gettext-base
+
+      - name: Generate .env from template
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          echo "🔧 Generating .env from template..."
+          
+          # Проверяем наличие шаблона
+          if [ ! -f ".env.production.template" ]; then
+            echo "❌ Template not found! Creating minimal one..."
+            cat > .env.production.template << 'EOF'
+            APP_NAME="My App Deploy"
+            APP_KEY=${APP_KEY}
+            APP_ENV=production
+            APP_DEBUG=false
+            APP_URL=http://${SSH_HOST}:8080
+          
+            DB_CONNECTION=mysql
+            DB_HOST=db
+            DB_PORT=3306
+            DB_DATABASE=laravel
+            DB_USERNAME=root
+            DB_PASSWORD=${DB_PASSWORD}
+            EOF
+          fi
+          
+          # Генерируем .env
+          envsubst < .env.production.template > .env
+          
+          echo "✅ .env generated"
+          echo "📋 Preview:"
+          head -10 .env
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.5
         with:
@@ -17,10 +57,13 @@ jobs:
           script: |
             cd /var/www
 
+            # Если папка пустая - клонируем
             if [ ! -d ".git" ]; then
+              echo "📥 Cloning repository..."
               git clone https://github.com/igorzeno/deploy.git .
             fi
             
+            echo "📥 Pulling latest changes..."
             git pull origin master 
 
             echo "=== 1. FIX STORAGE ONCE AND FOR ALL ==="
@@ -36,22 +79,16 @@ jobs:
             sudo mkdir -p bootstrap/cache
             
             sudo chmod -R 777 storage bootstrap/cache
- 
-            # Просто записываем переменные напрямую
-            echo 'APP_NAME="My App Deploy"' > .env
-            echo 'APP_KEY=${{ secrets.APP_KEY }}' >> .env
-            echo 'APP_ENV=production' >> .env
-            echo 'APP_DEBUG=false' >> .env
-            echo 'APP_URL=http://${{ secrets.SSH_HOST }}' >> .env
-            echo 'DB_CONNECTION=mysql' >> .env
-            echo 'DB_HOST=db' >> .env
-            echo 'DB_PORT=3306' >> .env
-            echo 'DB_DATABASE=laravel' >> .env
-            echo 'DB_USERNAME=root' >> .env
-            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> .env
             
-            echo "Файл .env создан"
-            ls -la .env
+            echo "=== 2. COPY GENERATED .ENV ==="
+            # Копируем сгенерированный .env с GitHub Actions runner
+            cat > .env << 'EOF'
+            $(cat .env)
+            EOF
+            
+            echo "✅ .env created from template"
+            echo "📄 First 5 lines:"
+            head -5 .env
 
             echo "Устанавливаем зависимости через Docker..."
             cd /var/www/app
