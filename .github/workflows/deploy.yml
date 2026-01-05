@@ -1,0 +1,81 @@
+name: Deploy
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www
+
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/igorzeno/deploy.git .
+            fi
+            
+            git pull origin master 
+          
+            sudo mkdir -p app/storage/{framework/{sessions,views,cache},logs} app/bootstrap/cache
+            sudo chmod -R 777 app/storage app/bootstrap/cache
+            
+            # Просто записываем переменные напрямую
+            echo 'APP_NAME="My App Deploy"' > .env
+            echo 'APP_KEY=${{ secrets.APP_KEY }}' >> .env
+            echo 'APP_ENV=production' >> .env
+            echo 'APP_DEBUG=false' >> .env
+            echo 'APP_URL=http://${{ secrets.SSH_HOST }}' >> .env
+            echo 'DB_CONNECTION=mysql' >> .env
+            echo 'DB_HOST=db' >> .env
+            echo 'DB_PORT=3306' >> .env
+            echo 'DB_DATABASE=laravel' >> .env
+            echo 'DB_USERNAME=root' >> .env
+            echo 'DB_PASSWORD=${{ secrets.DB_PASSWORD }}' >> .env
+            
+            echo "Файл .env создан"
+            ls -la .env
+            
+            echo "START DOCKER"
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d --build
+            
+            echo "Устанавливаем зависимости через Docker..."
+            cd /var/www/app
+            
+            # Используем Docker контейнер composer
+            docker run --rm -v $(pwd):/app -w /app composer:latest \
+              composer install --no-dev --optimize-autoloader --no-scripts 2>&1
+            
+            if [ -d "vendor" ]; then
+              echo "✅ Vendor создан!"
+              ls -la vendor/ | head -3
+            else
+              echo "❌ Vendor не создан!"
+              exit 1
+            fi
+            
+            cd /var/www
+            
+            # 1. Build app
+            docker-compose -f docker-compose.prod.yml build app
+            
+            # 2. Start DB only
+            docker-compose -f docker-compose.prod.yml up -d db
+            sleep 25
+            
+            # 3. ВСЕ команды в ОДНОМ run
+            docker-compose -f docker-compose.prod.yml run --rm app sh -c "
+            php artisan migrate:refresh --force
+            php artisan db:seed --force
+            "
+            
+            docker-compose -f docker-compose.prod.yml up -d
+            
+            echo "✅ Done!"

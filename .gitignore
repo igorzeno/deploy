@@ -1,0 +1,50 @@
+### DOCKER ###
+docker-compose.override.yml
+.env
+.env.production
+.env.local
+.env.*.local
+.docker/  # Игнорируем всю папку
+
+# Но разрешаем конфиги (через .git/info/exclude или явно)
+!.docker/nginx/
+!.docker/php/
+!.docker/mysql/
+.docker/*  # игнорируем все файлы в корне .docker
+.docker/.*  # и скрытые
+
+### LARAVEL (app/) ###
+/app/.env
+/app/.env.production
+/app/storage/framework/cache/data/
+/app/storage/framework/sessions/
+/app/storage/framework/views/
+/app/storage/logs/
+/app/public/hot
+/app/public/storage
+/app/bootstrap/cache/*.php
+/app/vendor/
+composer.lock  # обычно комитится, но спорно
+
+### NODE ###
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### IDE ###
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+### BUILD ###
+*.tar
+*.tar.gz
+dist/
+build/
+
+### OS ###
+.DS_Store
+Thumbs.db
