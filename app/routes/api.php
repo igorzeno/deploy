@@ -14,6 +14,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('travels', TravelController::class);
     Route::apiResource('tours', TourController::class);
 
+
     Route::post('travels/bulk', [TravelController::class, 'bulkStore']);
     Route::post('tours/bulk', [TourController::class, 'bulkStore']);
 });
